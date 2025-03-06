@@ -1,7 +1,10 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"io"
+	"log"
 	"os"
 	"os/exec"
 )
@@ -14,13 +17,30 @@ var _ = exec.Command
 func main() {
 	command := os.Args[3]
 	args := os.Args[4:len(os.Args)]
+	exitCode := 0
 
 	cmd := exec.Command(command, args...)
-	output, err := cmd.Output()
+	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		fmt.Printf("Err: %v", err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
-
-	fmt.Println(string(output))
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := cmd.Start(); err != nil {
+		log.Fatal(err)
+	}
+	stdoutBytes, _ := io.ReadAll(stdout)
+	stderrBytes, _ := io.ReadAll(stderr)
+	err = cmd.Wait()
+	if err != nil {
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) {
+			exitCode = exitErr.ExitCode()
+		}
+	}
+	fmt.Printf(string(stdoutBytes))
+	fmt.Fprintf(os.Stderr, string(stderrBytes))
+	os.Exit(exitCode)
 }
