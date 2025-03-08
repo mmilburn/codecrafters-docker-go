@@ -35,3 +35,5 @@ mydocker run alpine:latest cat /etc/issue
 ## Test Run Video
 
 A short video of the code being run in the codecrafters test environment:
+
+https://github.com/user-attachments/assets/2d4d50d3-f3aa-4411-be1d-1c7b34b5d7c0
